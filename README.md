@@ -2,6 +2,18 @@
 
 Spring Boot ile gelistirilmis kutuphane otomasyon API projesidir. Projede kitap, yazar, yayinci, kategori, odunc alma ve kullanici islemleri icin REST endpointleri bulunur. PostgreSQL veritabani, Redis cache, JWT tabanli kimlik dogrulama ve Swagger UI destegi kullanilir.
 
+
+## Highlights
+
+- [1) N+1 Problem](n+1%20problem.md)
+- [2) Redis Cache](redis.md)
+- [3) Role Based Authentication (RBAC)](RBAC.md)
+- 4) Method Security
+- 5) Exception Management
+- 6) JWT and Security
+
+
+
 ## Kullanilan Teknolojiler
 
 - Java 17
@@ -14,7 +26,6 @@ Spring Boot ile gelistirilmis kutuphane otomasyon API projesidir. Projede kitap,
 - Redis
 - Spring Cache
 - Lombok
-- MapStruct
 - ModelMapper
 - Springdoc OpenAPI / Swagger UI
 - Docker Compose
@@ -95,31 +106,7 @@ API dokumantasyonuna su adresten ulasilabilir:
 
 ```text
 http://localhost:8080/swagger-ui/index.html
-```
 
-## Redis Cache
-
-Projede Redis cache icin `RedisConfig` sinifi bulunur. Cache mekanizmasi main uygulama sinifindaki `@EnableCaching` ile aktif edilir.
-
-Kullanilan cache anotasyonlari:
-
-- `@Cacheable`: Veri okunurken once Redis kontrol edilir. Veri varsa database calismadan cache'den doner.
-- `@CachePut`: Veri guncellendiginde database islemi sonrasi Redis'teki cache kaydini da gunceller.
-- `@CacheEvict`: Veri silindiginde Redis'teki cache kaydini da siler.
-
-Kitap cache'i `books` cache adi ile tutulur.
-
-Redis cache temizleme:
-
-```bash
-docker exec -it redis-cache redis-cli FLUSHALL
-```
-
-Redis CLI'a baglanma:
-
-```bash
-docker exec -it redis-cache redis-cli
-```
 
 ## Kimlik Dogrulama Endpointleri
 
@@ -232,18 +219,4 @@ Base path:
 | PUT | `/update/{id}` | Kullanici gunceller |
 | DELETE | `/delete/{id}` | Kullanici siler |
 
-## Yetkilendirme
 
-Bazi endpointlerde `@PreAuthorize` kullanilir. Kitap ekleme, kitap guncelleme, kitap silme ve odunc kaydi olusturma islemleri `ADMIN` veya `LIBRARIAN` rolune sahip kullanicilar icindir.
-
-JWT token alindiktan sonra isteklerde header olarak gonderilir:
-
-```text
-Authorization: Bearer <token>
-```
-
-## Notlar
-
-- Redis cache kayitlari varsayilan olarak 10 dakika yasam suresine sahiptir.
-- Eski cache verileri serialize/deserialize hatasina neden olursa Redis cache temizlenmelidir.
-- Mail ayarlari `application.properties` icinde bulunur.

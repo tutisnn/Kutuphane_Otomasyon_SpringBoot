@@ -9,6 +9,6 @@ import java.util.Optional;
 public interface CategoryRepository extends JpaRepository<Category, Integer> {
     Category findCategoryById(Integer id);
 
-    Optional<Category> findByAd(String categoryAd);
+    Optional<Category> findFirstByAd(String categoryAd);
 
 }

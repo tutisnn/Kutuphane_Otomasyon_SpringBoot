@@ -3,13 +3,13 @@ package org.example.kutuphaneotomasyon.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import java.time.LocalDate;
 
 @Entity
 @Getter
 @Setter
-@Where(clause="deleted=false")
+@SQLRestriction("deleted=false")
 public class Loan {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

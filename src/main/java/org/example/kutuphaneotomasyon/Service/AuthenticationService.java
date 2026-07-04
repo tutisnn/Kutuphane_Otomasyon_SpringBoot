@@ -9,7 +9,7 @@ import org.example.kutuphaneotomasyon.Dto.VerifyUserDto;
 import org.example.kutuphaneotomasyon.Entity.User;
 import org.example.kutuphaneotomasyon.Repository.UserRepository;
 import org.example.kutuphaneotomasyon.Service.Impl.EmailService;
-import org.example.kutuphaneotomasyon.Service.JwtService;
+import org.example.kutuphaneotomasyon.jwt.JwtService;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;

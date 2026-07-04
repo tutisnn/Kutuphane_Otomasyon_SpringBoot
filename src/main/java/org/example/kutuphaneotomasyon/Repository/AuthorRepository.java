@@ -12,5 +12,5 @@ public interface AuthorRepository extends JpaRepository<Author, Integer> {
     Author findAuthorById(int id);
 
 
-    Optional<Author> findByAdAndSoyad(String authorAd, String authorSoyad);
+    Optional<Author> findFirstByAdAndSoyad(String authorAd, String authorSoyad);
 }

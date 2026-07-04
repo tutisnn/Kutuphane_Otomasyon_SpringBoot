@@ -3,7 +3,7 @@ package org.example.kutuphaneotomasyon.Entity;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.hibernate.annotations.Where;
+import org.hibernate.annotations.SQLRestriction;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -15,7 +15,7 @@ import java.util.List;
 @Entity
 @Getter
 @Setter
-@Where(clause="deleted=false")
+@SQLRestriction("deleted=false")
 @Table(name = "\"user\"")
 public class User implements UserDetails {
     @Id

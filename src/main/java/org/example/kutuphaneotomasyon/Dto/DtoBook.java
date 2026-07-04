@@ -15,7 +15,6 @@ public class DtoBook {
     private String ad;
     private int baskiYili;
     private Durum durum;
-    private String kitapKapakfotosuUrl;
     private String dil;
 
     private String authorAd;

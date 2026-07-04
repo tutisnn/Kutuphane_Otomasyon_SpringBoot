@@ -15,16 +15,13 @@ import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
 import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.IBookService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -43,10 +40,10 @@ public class BookServiceImpl implements IBookService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
-    public GenericResponse<?> saveBook(DtoBookIU dto, MultipartFile file) {
+    public GenericResponse<?> saveBook(DtoBookIU dto) {
         System.out.println("saveBook called...");
 
-        Author author = authorRepository.findByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
+        Author author = authorRepository.findFirstByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
                 .orElseGet(() -> {
                     Author newAuthor = new Author();
                     newAuthor.setAd(dto.getAuthorAd());
@@ -54,14 +51,14 @@ public class BookServiceImpl implements IBookService {
                     return authorRepository.save(newAuthor);
                 });
 
-        Publisher publisher = publisherRepository.findByAd(dto.getPublisherAd())
+        Publisher publisher = publisherRepository.findFirstByAd(dto.getPublisherAd())
                 .orElseGet(() -> {
                     Publisher newPublisher = new Publisher();
                     newPublisher.setAd(dto.getPublisherAd());
                     return publisherRepository.save(newPublisher);
                 });
 
-        Category category = categoryRepository.findByAd(dto.getCategoryAd())
+        Category category = categoryRepository.findFirstByAd(dto.getCategoryAd())
                 .orElseGet(() -> {
                     Category newCategory = new Category();
                     newCategory.setAd(dto.getCategoryAd());
@@ -73,24 +70,14 @@ public class BookServiceImpl implements IBookService {
         book.setPublisher(publisher);
         book.setCategory(category);
 
-        try {
-            String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-            Path path = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "images", fileName);
-            Files.createDirectories(path.getParent());
-            Files.write(path, file.getBytes());
-
-            book.setKitapKapakfotosuUrl("/images/" + fileName);
-        } catch (IOException e) {
-            return GenericResponse.error("Fotoğraf yüklenemedi: " + e.getMessage());
-        }
-
         Book saved = bookRepository.save(book);
         DtoBook responseDto = bookMapperView.bookToDto(saved);
         return GenericResponse.success(responseDto);
     }
 
     @Override
-    public GenericResponse<?> updateBook(Integer id, DtoBookIU dto, MultipartFile file) {
+    @CachePut(value = "books", key = "#id", unless = "#result.data == null")
+    public GenericResponse<?> updateBook(Integer id, DtoBookIU dto) {
         System.out.println("updateBook called with DTO...");
 
         Optional<Book> optional = bookRepository.findById(id);
@@ -101,7 +88,7 @@ public class BookServiceImpl implements IBookService {
         Book book = optional.get();
         bookMapperIU.updateBookFromDto(dto, book);
 
-        Author author = authorRepository.findByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
+        Author author = authorRepository.findFirstByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
                 .orElseGet(() -> {
                     Author newAuthor = new Author();
                     newAuthor.setAd(dto.getAuthorAd());
@@ -109,14 +96,14 @@ public class BookServiceImpl implements IBookService {
                     return authorRepository.save(newAuthor);
                 });
 
-        Publisher publisher = publisherRepository.findByAd(dto.getPublisherAd())
+        Publisher publisher = publisherRepository.findFirstByAd(dto.getPublisherAd())
                 .orElseGet(() -> {
                     Publisher newPublisher = new Publisher();
                     newPublisher.setAd(dto.getPublisherAd());
                     return publisherRepository.save(newPublisher);
                 });
 
-        Category category = categoryRepository.findByAd(dto.getCategoryAd())
+        Category category = categoryRepository.findFirstByAd(dto.getCategoryAd())
                 .orElseGet(() -> {
                     Category newCategory = new Category();
                     newCategory.setAd(dto.getCategoryAd());
@@ -127,25 +114,13 @@ public class BookServiceImpl implements IBookService {
         book.setPublisher(publisher);
         book.setCategory(category);
 
-        if (file != null && !file.isEmpty()) {
-            try {
-                String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
-                Path path = Paths.get(System.getProperty("user.dir"), "src", "main", "resources", "static", "images", fileName);
-                Files.createDirectories(path.getParent());
-                Files.write(path, file.getBytes());
-
-                book.setKitapKapakfotosuUrl("/images/" + fileName);
-            } catch (IOException e) {
-                return GenericResponse.error("Fotoğraf güncellenemedi: " + e.getMessage());
-            }
-        }
-
         Book updated = bookRepository.save(book);
         DtoBook response = bookMapperView.bookToDto(updated);
         return GenericResponse.success(response);
     }
 
     @Override
+    @CacheEvict(value = "books", key = "#id")
     public GenericResponse<?> deleteBook(Integer id) {
         System.out.println("deleteBook called...");
 
@@ -161,7 +136,7 @@ public class BookServiceImpl implements IBookService {
     @Override
     public GenericResponse<?> getAllBooks() {
         System.out.println("getAllBooks called...");
-        List<Book> books = bookRepository.findAll();
+        List<Book> books = bookRepository.findAllWithRelations();
 
         if (books.isEmpty()) {
             return GenericResponse.error(Constants.EMPTY_LIST);
@@ -176,7 +151,9 @@ public class BookServiceImpl implements IBookService {
     }
 
     @Override
+    @Cacheable(value = "books", key = "#id")
     public GenericResponse<?> findById(Integer id) {
+        System.out.println("findById called from database...");
         Book book = bookRepository.findBookById(id);
 
         if (book == null) {

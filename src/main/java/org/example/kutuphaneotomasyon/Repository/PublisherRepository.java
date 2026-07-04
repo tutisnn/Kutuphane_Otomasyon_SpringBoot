@@ -10,5 +10,5 @@ import java.util.Optional;
 public interface PublisherRepository extends JpaRepository<Publisher, Integer> {
     Publisher findPublisherById(int id);
 
-    Optional<Publisher> findByAd(String publisherAd);
+    Optional<Publisher> findFirstByAd(String publisherAd);
 }

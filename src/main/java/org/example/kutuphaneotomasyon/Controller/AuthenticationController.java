@@ -6,7 +6,7 @@ import org.example.kutuphaneotomasyon.Dto.*;
 import org.example.kutuphaneotomasyon.Entity.User;
 import org.example.kutuphaneotomasyon.ResponseMessage.LoginResponse;
 import org.example.kutuphaneotomasyon.Service.AuthenticationService;
-import org.example.kutuphaneotomasyon.Service.JwtService;
+import org.example.kutuphaneotomasyon.jwt.JwtService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 

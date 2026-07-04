@@ -15,7 +15,6 @@ public class BookMapperView {
         dto.setAd(book.getAd());
         dto.setBaskiYili(book.getBaskiYili());
         dto.setDurum(book.getDurum());
-        dto.setKitapKapakfotosuUrl(book.getKitapKapakfotosuUrl());
         dto.setDil(book.getDil());
         dto.setAuthorAd(book.getAuthor().getAd());
         dto.setAuthorSoyad(book.getAuthor().getSoyad());

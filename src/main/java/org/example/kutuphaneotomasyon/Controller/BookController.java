@@ -1,18 +1,13 @@
 
 package org.example.kutuphaneotomasyon.Controller;
 
-import io.swagger.v3.oas.annotations.Parameter;
-import org.example.kutuphaneotomasyon.Dto.DtoAuthorIU;
 import org.example.kutuphaneotomasyon.Dto.DtoBookIU;
 import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 
 import org.example.kutuphaneotomasyon.Service.IBookService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("rest/api/Book")
@@ -21,22 +16,18 @@ public class BookController  {
     private IBookService bookService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
-    @PostMapping(value = "/save", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public GenericResponse<?> saveBook(
-            @ModelAttribute DtoBookIU dto,
-            @RequestParam("file") MultipartFile file
-    ) {
-        return bookService.saveBook(dto, file);
+    @PostMapping("/save")
+    public GenericResponse<?> saveBook(@RequestBody DtoBookIU dto) {
+        return bookService.saveBook(dto);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
-    @PutMapping(value = "/update/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PutMapping("/update/{id}")
     public GenericResponse<?> updateBook(
             @PathVariable Integer id,
-            @ModelAttribute DtoBookIU dto,
-            @RequestParam(value = "file", required = false) MultipartFile file
+            @RequestBody DtoBookIU dto
     ) {
-        return bookService.updateBook(id, dto, file);
+        return bookService.updateBook(id, dto);
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")

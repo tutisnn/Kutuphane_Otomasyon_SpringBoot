@@ -21,7 +21,7 @@ public class DtoBookIU {
     @Schema(description = "Kitap baskı yılı", example = "2023")
     private int baskiYili;
 
-    @Schema(description = "Kitap durumu", example = "MEVCUT")
+    @Schema(description = "Kitap durumu", example = "MUSAIT", allowableValues = {"MUSAIT", "MEVCUT", "KAYIP", "ODUNC_VERILDI"})
     private Durum durum; // Durum enum tipi için de Swagger açıklaması eklenmeli
 
 

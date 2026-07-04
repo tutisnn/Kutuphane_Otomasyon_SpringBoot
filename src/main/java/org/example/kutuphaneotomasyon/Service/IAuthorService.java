@@ -1,14 +1,16 @@
 package org.example.kutuphaneotomasyon.Service;
 
-
+import org.example.kutuphaneotomasyon.Dto.DtoAuthor;
 import org.example.kutuphaneotomasyon.Dto.DtoAuthorIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Dto.DtoBook;
+
+import java.util.List;
 
 public interface IAuthorService {
-    GenericResponse<?> saveAuthor(DtoAuthorIU dto);
-    GenericResponse<?> getAllAuthors();
-    GenericResponse<?> getAuthorById(Integer id);
-    GenericResponse<?> updateAuthor(Integer id, DtoAuthorIU dto);
-    GenericResponse<?> deleteAuthor(Integer id);
-    GenericResponse<?> getBooksByAuthorId(Integer authorId);
+    DtoAuthor saveAuthor(DtoAuthorIU dto);
+    List<DtoAuthor> getAllAuthors();
+    DtoAuthor getAuthorById(Integer id);
+    DtoAuthor updateAuthor(Integer id, DtoAuthorIU dto);
+    String deleteAuthor(Integer id);
+    List<DtoBook> getBooksByAuthorId(Integer authorId);
 }

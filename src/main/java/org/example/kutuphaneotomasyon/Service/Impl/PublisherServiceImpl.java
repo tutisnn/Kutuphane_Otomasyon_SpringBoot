@@ -9,13 +9,13 @@ import org.example.kutuphaneotomasyon.Mapper.BookMapperView;
 import org.example.kutuphaneotomasyon.Mapper.PublisherMapper;
 import org.example.kutuphaneotomasyon.Repository.BookRepository;
 import org.example.kutuphaneotomasyon.Repository.PublisherRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.IPublisherService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -23,8 +23,7 @@ public class PublisherServiceImpl implements IPublisherService {
 
     private final PublisherRepository publisherRepository;
     private final BookRepository bookRepository;
-    private final BookMapperView bookMapperView = new BookMapperView();  // manuel sınıf başlatma
-    private final PublisherMapper publisherMapper = new PublisherMapper(); // manuel sınıf başlatma
+    private final BookMapperView bookMapperView = new BookMapperView();
 
     public PublisherServiceImpl(PublisherRepository publisherRepository, BookRepository bookRepository) {
         this.publisherRepository = publisherRepository;
@@ -32,72 +31,61 @@ public class PublisherServiceImpl implements IPublisherService {
     }
 
     @Override
-    public GenericResponse<?> savePublisher(DtoPublisherIU dto) {
-        System.out.println("GELEN DTO: " + dto);
-        System.out.println("DTO.getAd(): " + dto.getAd());
-
-        Publisher publisher = PublisherMapper.dtoToPublisher(dto);  // PublisherMapper manuel kullanımı
-        System.out.println("MAPPED ENTITY AD: " + publisher.getAd());
-
+    public DtoPublisher savePublisher(DtoPublisherIU dto) {
+        Publisher publisher = PublisherMapper.dtoToPublisher(dto);
         Publisher saved = publisherRepository.save(publisher);
-        return GenericResponse.success(PublisherMapper.publisherToDto(saved));  // PublisherMapper manuel kullanımı
+        return PublisherMapper.publisherToDto(saved);
     }
 
     @Override
-    public GenericResponse<?> getAllPublishers() {
+    public List<DtoPublisher> getAllPublishers() {
         List<Publisher> publishers = publisherRepository.findAll();
         if (publishers.isEmpty()) {
-            return GenericResponse.error(Constants.EMPTY_LIST);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_LIST, "publishers"));
         }
-        List<DtoPublisher> dtoList = publishers.stream()
-                .map(PublisherMapper::publisherToDto)  // PublisherMapper manuel kullanımı
+
+        return publishers.stream()
+                .map(PublisherMapper::publisherToDto)
                 .collect(Collectors.toList());
-        return GenericResponse.success(dtoList);
     }
 
     @Override
-    public GenericResponse<?> getPublisherbyId(Integer id) {
-        Optional<Publisher> optional = publisherRepository.findById(id);
-        return optional.map(publisher -> GenericResponse.success(PublisherMapper.publisherToDto(publisher)))  // PublisherMapper manuel kullanımı
-                .orElseGet(() -> GenericResponse.error(Constants.EMPTY_ID));
+    public DtoPublisher getPublisherbyId(Integer id) {
+        Publisher publisher = publisherRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        return PublisherMapper.publisherToDto(publisher);
     }
 
     @Override
-    public GenericResponse<?> updatePublisher(Integer id, DtoPublisherIU dto) {
-        Optional<Publisher> optional = publisherRepository.findById(id);
-        if (optional.isPresent()) {
-            Publisher publisher = optional.get();
-            PublisherMapper.updatePublisherFromDto(dto, publisher);  // PublisherMapper manuel kullanımı
-            Publisher updated = publisherRepository.save(publisher);
-            return GenericResponse.success(PublisherMapper.publisherToDto(updated));  // PublisherMapper manuel kullanımı
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public DtoPublisher updatePublisher(Integer id, DtoPublisherIU dto) {
+        Publisher publisher = publisherRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        PublisherMapper.updatePublisherFromDto(dto, publisher);
+        Publisher updated = publisherRepository.save(publisher);
+        return PublisherMapper.publisherToDto(updated);
     }
 
     @Override
-    public GenericResponse<?> deletePublisher(Integer id) {
-        Optional<Publisher> optional = publisherRepository.findById(id);
-        if (optional.isPresent()) {
-            publisherRepository.delete(optional.get());
-            return GenericResponse.success("Yayınevi başarıyla silindi.");
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public String deletePublisher(Integer id) {
+        Publisher publisher = publisherRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        publisherRepository.delete(publisher);
+        return "Yayınevi başarıyla silindi.";
     }
 
     @Override
-    public GenericResponse<?> getBooksByPublisher(Integer publisherId) {
+    public List<DtoBook> getBooksByPublisher(Integer publisherId) {
         if (!publisherRepository.existsById(publisherId)) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, publisherId.toString()));
         }
+
         List<Book> books = bookRepository.findByPublisherId(publisherId);
         if (books.isEmpty()) {
-            return GenericResponse.error("Bu yayınevine ait kitap bulunamadı.");
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, "Bu yayınevine ait kitap bulunamadı."));
         }
-        List<DtoBook> dtoList = books.stream()
-                .map(bookMapperView::bookToDto)  // bookMapperView manuel kullanımı
+
+        return books.stream()
+                .map(bookMapperView::bookToDto)
                 .collect(Collectors.toList());
-        return GenericResponse.success(dtoList);
     }
 }

@@ -1,18 +1,24 @@
 package org.example.kutuphaneotomasyon.Service;
+
+import org.example.kutuphaneotomasyon.Dto.DtoBook;
 import org.example.kutuphaneotomasyon.Dto.DtoBookIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Dto.DtoSystemStatus;
+
+import java.util.List;
 
 public interface IBookService {
-    GenericResponse<?> saveBook(DtoBookIU dto);
-    GenericResponse<?>updateBook(Integer id, DtoBookIU dto);
-    GenericResponse<?>deleteBook(Integer id);
-    GenericResponse<?>getAllBooks();
 
-    GenericResponse<?> findById(Integer id);
-    GenericResponse<?> searchBooksByName(String keyword);
-    public GenericResponse<?> getSystemStatus();
+    DtoBook saveBook(DtoBookIU dto);
 
+    DtoBook updateBook(Integer id, DtoBookIU dto);
 
+    String deleteBook(Integer id);
 
+    List<DtoBook> getAllBooks();
 
+    DtoBook findById(Integer id);
+
+    List<DtoBook> searchBooksByName(String keyword);
+
+    DtoSystemStatus getSystemStatus();
 }

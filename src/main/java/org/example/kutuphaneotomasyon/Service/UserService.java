@@ -2,14 +2,13 @@ package org.example.kutuphaneotomasyon.Service;
 
 import org.example.kutuphaneotomasyon.Dto.UserDto;
 import org.example.kutuphaneotomasyon.Dto.UserDtoIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 
 import java.util.List;
 
 public interface UserService {
-     List<UserDto> allUsers();
-     GenericResponse<?> deleteUser(Integer id);
-     GenericResponse<?> updateUser(Integer id, UserDtoIU dto);
-     GenericResponse<?> findById(Integer id);
-     GenericResponse<?> searchByUserName(String keyword);
+    List<UserDto> allUsers();
+    UserDto deleteUser(Integer id);
+    UserDto updateUser(Integer id, UserDtoIU dto);
+    UserDto findById(Integer id);
+    List<UserDto> searchByUserName(String keyword);
 }

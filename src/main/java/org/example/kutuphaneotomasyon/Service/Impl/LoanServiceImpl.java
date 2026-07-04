@@ -1,6 +1,7 @@
 package org.example.kutuphaneotomasyon.Service.Impl;
 
 import jakarta.transaction.Transactional;
+import org.example.kutuphaneotomasyon.Dto.LoanDto;
 import org.example.kutuphaneotomasyon.Dto.LoanDtoIU;
 import org.example.kutuphaneotomasyon.Entity.Book;
 import org.example.kutuphaneotomasyon.Entity.Durum;
@@ -10,95 +11,83 @@ import org.example.kutuphaneotomasyon.Mapper.LoanMapper;
 import org.example.kutuphaneotomasyon.Repository.BookRepository;
 import org.example.kutuphaneotomasyon.Repository.LoanRepository;
 import org.example.kutuphaneotomasyon.Repository.UserRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.LoanService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @Transactional
 public class LoanServiceImpl implements LoanService {
 
-        @Autowired
-        private LoanRepository loanRepository;
+    @Autowired
+    private LoanRepository loanRepository;
 
-        @Autowired
-        private UserRepository userRepository;
+    @Autowired
+    private UserRepository userRepository;
 
-        @Autowired
-        private BookRepository bookRepository;
+    @Autowired
+    private BookRepository bookRepository;
 
-        @Autowired
-        private LoanMapper loanMapper;
-    @Transactional
+    @Autowired
+    private LoanMapper loanMapper;
+
     @Override
-    public GenericResponse<?> saveLoan(LoanDtoIU loanDtoIU) {
-        User user = userRepository.findById(loanDtoIU.getUserId()).orElse(null);
-        Book book = bookRepository.findById(loanDtoIU.getBookId()).orElse(null);
-        System.out.println(loanDtoIU.getBookId());
+    public LoanDto saveLoan(LoanDtoIU loanDtoIU) {
+        User user = userRepository.findById(loanDtoIU.getUserId())
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_USER, loanDtoIU.getUserId().toString())));
+        Book book = bookRepository.findById(loanDtoIU.getBookId())
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_BOOK, loanDtoIU.getBookId().toString())));
 
-        if (user == null) {
-            return GenericResponse.error(Constants.EMPTY_USER);
-        }
-        if (book == null) {
-            return GenericResponse.error(Constants.EMPTY_BOOK);
-        }
         if (book.getDurum() != Durum.MUSAIT) {
-            return GenericResponse.error("Kitap şu an uygun değil: " + book.getDurum().name());
+            throw new BaseException(new ErrorMessage(MessageType.BOOK_NOT_AVAILABLE, book.getDurum().name()));
         }
-        // Kitabı ödünç ver → durumunu güncelle
+
         book.setDurum(Durum.ODUNC_VERILDI);
-        System.out.println("Kitap durumu set edildi: " + book.getDurum());
-
         bookRepository.save(book);
-
 
         Loan loan = loanMapper.dtoToLoan(loanDtoIU, user, book);
         Loan saved = loanRepository.save(loan);
-        return GenericResponse.success(loanMapper.loanToDto(saved));
+        return loanMapper.loanToDto(saved);
     }
 
-        @Override
-        public GenericResponse<?> getAllLoans() {
-            List<Loan> loans = loanRepository.findAll();
-            return GenericResponse.success(
-                    loans.stream().map(loanMapper::loanToDto).toList()
-            );
-        }
-
-        @Override
-        public GenericResponse<?> getLoanById(Integer id) {
-            return loanRepository.findById(id)
-                    .map(loan -> GenericResponse.success(loanMapper.loanToDto(loan)))
-                    .orElseGet(() -> GenericResponse.error("Loan not found"));
-        }
-
-        @Override
-        public GenericResponse<?> deleteLoanById(Integer id) {
-            if (!loanRepository.existsById(id)) {
-                return GenericResponse.error("Loan not found!");
-            }
-            loanRepository.deleteById(id);
-            return GenericResponse.success("Deleted successfully");
-        }
+    @Override
+    public List<LoanDto> getAllLoans() {
+        return loanRepository.findAll()
+                .stream()
+                .map(loanMapper::loanToDto)
+                .toList();
+    }
 
     @Override
-    public GenericResponse<?> updateLoan(Integer id, LoanDtoIU updatedLoan) {
-        Optional<Loan> optionalLoan = loanRepository.findById(id);
-        if (optionalLoan.isEmpty()) {
-            return GenericResponse.error("Loan not found!");
+    public LoanDto getLoanById(Integer id) {
+        Loan loan = loanRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        return loanMapper.loanToDto(loan);
+    }
+
+    @Override
+    public String deleteLoanById(Integer id) {
+        if (!loanRepository.existsById(id)) {
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString()));
         }
+        loanRepository.deleteById(id);
+        return "Deleted successfully";
+    }
 
-        User user = userRepository.findById(updatedLoan.getUserId()).orElse(null);
-        Book book = bookRepository.findById(updatedLoan.getBookId()).orElse(null);
+    @Override
+    public LoanDto updateLoan(Integer id, LoanDtoIU updatedLoan) {
+        Loan loan = loanRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        User user = userRepository.findById(updatedLoan.getUserId())
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_USER, updatedLoan.getUserId().toString())));
+        Book book = bookRepository.findById(updatedLoan.getBookId())
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_BOOK, updatedLoan.getBookId().toString())));
 
-        if (user == null) return GenericResponse.error("User not found!");
-        if (book == null) return GenericResponse.error("Book not found!");
-
-        Loan loan = optionalLoan.get();
         loan.setBorrowDate(updatedLoan.getBorrowDate());
         loan.setReturnDate(updatedLoan.getReturnDate());
         loan.setReturned(updatedLoan.isReturned());
@@ -111,6 +100,6 @@ public class LoanServiceImpl implements LoanService {
         }
 
         Loan updated = loanRepository.save(loan);
-        return GenericResponse.success(loanMapper.loanToDto(updated));
+        return loanMapper.loanToDto(updated);
     }
-    }
+}

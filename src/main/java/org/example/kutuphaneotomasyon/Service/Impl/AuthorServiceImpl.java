@@ -9,14 +9,14 @@ import org.example.kutuphaneotomasyon.Mapper.AuthorMapper;
 import org.example.kutuphaneotomasyon.Mapper.BookMapperView;
 import org.example.kutuphaneotomasyon.Repository.AuthorRepository;
 import org.example.kutuphaneotomasyon.Repository.BookRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.IAuthorService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,85 +34,62 @@ public class AuthorServiceImpl implements IAuthorService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
-    public GenericResponse<?> saveAuthor(DtoAuthorIU dto) {
-        System.out.println("saveAuthor called...");
-
+    public DtoAuthor saveAuthor(DtoAuthorIU dto) {
         Author author = authorMapper.dtoToAuthor(dto);
         Author saved = authorRepository.save(author);
-        return GenericResponse.success(authorMapper.authorToDto(saved));
+        return authorMapper.authorToDto(saved);
     }
 
     @Override
-    public GenericResponse<?> getAllAuthors() {
-        System.out.println("getAllAuthors called...");
-
+    public List<DtoAuthor> getAllAuthors() {
         List<Author> authors = authorRepository.findAll();
         if (authors.isEmpty()) {
-            return GenericResponse.error(Constants.EMPTY_LIST);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_LIST, "authors"));
         }
 
-        List<DtoAuthor> dtoList = authors.stream()
+        return authors.stream()
                 .map(authorMapper::authorToDto)
                 .collect(Collectors.toList());
-
-        return GenericResponse.success(dtoList);
     }
 
     @Override
-    public GenericResponse<?> getAuthorById(Integer id) {
-        System.out.println("getAuthorById called...");
-
-        Optional<Author> optional = authorRepository.findById(id);
-        return optional.map(author -> GenericResponse.success(authorMapper.authorToDto(author)))
-                .orElseGet(() -> GenericResponse.error(Constants.EMPTY_ID));
+    public DtoAuthor getAuthorById(Integer id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        return authorMapper.authorToDto(author);
     }
 
     @Override
-    public GenericResponse<?> updateAuthor(Integer id, DtoAuthorIU dto) {
-        System.out.println("updateAuthor called...");
-
-        Optional<Author> optional = authorRepository.findById(id);
-        if (optional.isPresent()) {
-            Author dbAuthor = optional.get();
-            authorMapper.updateAuthorFromDto(dto, dbAuthor);
-            Author updated = authorRepository.save(dbAuthor);
-            return GenericResponse.success(authorMapper.authorToDto(updated));
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public DtoAuthor updateAuthor(Integer id, DtoAuthorIU dto) {
+        Author dbAuthor = authorRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        authorMapper.updateAuthorFromDto(dto, dbAuthor);
+        Author updated = authorRepository.save(dbAuthor);
+        return authorMapper.authorToDto(updated);
     }
 
     @Override
-    public GenericResponse<?> deleteAuthor(Integer id) {
-        System.out.println("deleteAuthor called...");
-
-        Optional<Author> optional = authorRepository.findById(id);
-        if (optional.isPresent()) {
-            authorRepository.delete(optional.get());
-            return GenericResponse.success("Yazar başarıyla silindi.");
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public String deleteAuthor(Integer id) {
+        Author author = authorRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        authorRepository.delete(author);
+        return "Yazar başarıyla silindi.";
     }
 
     @Override
-    public GenericResponse<?> getBooksByAuthorId(Integer authorId) {
-        System.out.println("getBooksByAuthorId called...");
-
+    public List<DtoBook> getBooksByAuthorId(Integer authorId) {
         if (!authorRepository.existsById(authorId)) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, authorId.toString()));
         }
 
         List<Book> books = bookRepository.findByAuthorId(authorId);
         if (books.isEmpty()) {
-            return GenericResponse.error("Bu yazara ait kitap bulunamadı.");
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, "Bu yazara ait kitap bulunamadı."));
         }
 
-        List<DtoBook> dtoList = books.stream()
+        return books.stream()
                 .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
                 .map(bookMapperView::bookToDto)
                 .collect(Collectors.toList());
-
-        return GenericResponse.success(dtoList);
     }
 }

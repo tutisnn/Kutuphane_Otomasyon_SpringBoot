@@ -2,7 +2,7 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.DtoBookIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Model.RootEntity;
 
 import org.example.kutuphaneotomasyon.Service.IBookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,49 +11,49 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("rest/api/Book")
-public class BookController  {
+public class BookController extends RestBaseController {
     @Autowired
     private IBookService bookService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping("/save")
-    public GenericResponse<?> saveBook(@RequestBody DtoBookIU dto) {
-        return bookService.saveBook(dto);
+    public RootEntity<?> saveBook(@RequestBody DtoBookIU dto) {
+        return ok(bookService.saveBook(dto));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PutMapping("/update/{id}")
-    public GenericResponse<?> updateBook(
+    public RootEntity<?> updateBook(
             @PathVariable Integer id,
             @RequestBody DtoBookIU dto
     ) {
-        return bookService.updateBook(id, dto);
+        return ok(bookService.updateBook(id, dto));
     }
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @DeleteMapping("/delete/{id}")
-    public GenericResponse<?> deleteBook(@PathVariable(name="id")Integer id) {
-        return bookService.deleteBook(id);
+    public RootEntity<?> deleteBook(@PathVariable(name="id")Integer id) {
+        return ok(bookService.deleteBook(id));
     }
 
     @GetMapping(path ="/listAll")
-    public GenericResponse<?> getAllBooks() {
-        return bookService.getAllBooks();
+    public RootEntity<?> getAllBooks() {
+        return ok(bookService.getAllBooks());
     }
 
     @GetMapping(path ="/list/{id}")
-    public GenericResponse<?> findById(@PathVariable(name="id") Integer id) {
-        return bookService.findById(id);
+    public RootEntity<?> findById(@PathVariable(name="id") Integer id) {
+        return ok(bookService.findById(id));
     }
 
     @GetMapping("/search")
-    public GenericResponse<?> searchBooksByName(@RequestParam String keyword) {
-        return bookService.searchBooksByName(keyword);
+    public RootEntity<?> searchBooksByName(@RequestParam String keyword) {
+        return ok(bookService.searchBooksByName(keyword));
     }
 
     @GetMapping("/system/status")
-    public GenericResponse<?> getSystemStatus() {
-        return bookService.getSystemStatus();
+    public RootEntity<?> getSystemStatus() {
+        return ok(bookService.getSystemStatus());
     }
 
 

@@ -9,14 +9,14 @@ import org.example.kutuphaneotomasyon.Mapper.BookMapperView;
 import org.example.kutuphaneotomasyon.Mapper.CategoryMapper;
 import org.example.kutuphaneotomasyon.Repository.BookRepository;
 import org.example.kutuphaneotomasyon.Repository.CategoryRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.ICategoryService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -31,84 +31,62 @@ public class CategoryServiceImpl implements ICategoryService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
-    public GenericResponse<?> saveCategory(DtoCategoryIU dto) {
-        System.out.println("saveCategory called...");
-
+    public DtoCategory saveCategory(DtoCategoryIU dto) {
         Category category = CategoryMapper.dtoToCategory(dto);
         Category saved = categoryRepository.save(category);
-        return GenericResponse.success(CategoryMapper.categoryToDto(saved));
+        return CategoryMapper.categoryToDto(saved);
     }
 
     @Override
-    public GenericResponse<?> getAllCategories() {
-        System.out.println("getAllCategories called...");
-
+    public List<DtoCategory> getAllCategories() {
         List<Category> categories = categoryRepository.findAll();
         if (categories.isEmpty()) {
-            return GenericResponse.error(Constants.EMPTY_LIST);
-        } else {
-            List<DtoCategory> dtoList = categories.stream()
-                    .map(CategoryMapper::categoryToDto)
-                    .collect(Collectors.toList());
-            return GenericResponse.success(dtoList);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_LIST, "categories"));
         }
+
+        return categories.stream()
+                .map(CategoryMapper::categoryToDto)
+                .collect(Collectors.toList());
     }
 
     @Override
-    public GenericResponse<?> getCategoryById(Integer id) {
-        System.out.println("getCategoryById called...");
-
-        Optional<Category> optional = categoryRepository.findById(id);
-        return optional.map(category -> GenericResponse.success(CategoryMapper.categoryToDto(category)))
-                .orElseGet(() -> GenericResponse.error(Constants.EMPTY_ID));
+    public DtoCategory getCategoryById(Integer id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        return CategoryMapper.categoryToDto(category);
     }
 
     @Override
-    public GenericResponse<?> updateCategory(Integer id, DtoCategoryIU dto) {
-        System.out.println("updateCategory called...");
-
-        Optional<Category> optional = categoryRepository.findById(id);
-        if (optional.isPresent()) {
-            Category dbCategory = optional.get();
-            CategoryMapper.updateCategoryFromDto(dto, dbCategory);
-            Category updated = categoryRepository.save(dbCategory);
-            return GenericResponse.success(CategoryMapper.categoryToDto(updated));
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public DtoCategory updateCategory(Integer id, DtoCategoryIU dto) {
+        Category dbCategory = categoryRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        CategoryMapper.updateCategoryFromDto(dto, dbCategory);
+        Category updated = categoryRepository.save(dbCategory);
+        return CategoryMapper.categoryToDto(updated);
     }
 
     @Override
-    public GenericResponse<?> deleteCategory(Integer id) {
-        System.out.println("deleteCategory called...");
-
-        Optional<Category> optional = categoryRepository.findById(id);
-        if (optional.isPresent()) {
-            categoryRepository.delete(optional.get());
-            return GenericResponse.success("Kategori başarıyla silindi.");
-        } else {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        }
+    public String deleteCategory(Integer id) {
+        Category category = categoryRepository.findById(id)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
+        categoryRepository.delete(category);
+        return "Kategori başarıyla silindi.";
     }
 
     @Override
-    public GenericResponse<?> getBooksByCategoryId(Integer categoryId) {
-        System.out.println("getBooksByCategoryId called...");
-
+    public List<DtoBook> getBooksByCategoryId(Integer categoryId) {
         if (!categoryRepository.existsById(categoryId)) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, categoryId.toString()));
         }
 
         List<Book> books = bookRepository.findByCategoryId(categoryId);
         if (books.isEmpty()) {
-            return GenericResponse.error("Bu kategoriye ait kitap bulunamadı.");
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, "Bu kategoriye ait kitap bulunamadı."));
         }
 
-        List<DtoBook> dtoList = books.stream()
+        return books.stream()
                 .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
                 .map(bookMapperView::bookToDto)
                 .collect(Collectors.toList());
-
-        return GenericResponse.success(dtoList);
     }
 }

@@ -1,19 +1,23 @@
 package org.example.kutuphaneotomasyon.Service.Impl;
 
-
 import org.example.kutuphaneotomasyon.Dto.DtoBook;
 import org.example.kutuphaneotomasyon.Dto.DtoBookIU;
 import org.example.kutuphaneotomasyon.Dto.DtoSystemStatus;
-import org.example.kutuphaneotomasyon.Entity.*;
+import org.example.kutuphaneotomasyon.Entity.Author;
+import org.example.kutuphaneotomasyon.Entity.Book;
+import org.example.kutuphaneotomasyon.Entity.Category;
+import org.example.kutuphaneotomasyon.Entity.Durum;
+import org.example.kutuphaneotomasyon.Entity.Publisher;
 import org.example.kutuphaneotomasyon.Mapper.BookMapperIU;
 import org.example.kutuphaneotomasyon.Mapper.BookMapperView;
 import org.example.kutuphaneotomasyon.Repository.AuthorRepository;
 import org.example.kutuphaneotomasyon.Repository.BookRepository;
 import org.example.kutuphaneotomasyon.Repository.CategoryRepository;
 import org.example.kutuphaneotomasyon.Repository.PublisherRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.IBookService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
@@ -40,7 +44,7 @@ public class BookServiceImpl implements IBookService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
-    public GenericResponse<?> saveBook(DtoBookIU dto) {
+    public DtoBook saveBook(DtoBookIU dto) {
         System.out.println("saveBook called...");
 
         Author author = authorRepository.findFirstByAdAndSoyad(dto.getAuthorAd(), dto.getAuthorSoyad())
@@ -71,18 +75,17 @@ public class BookServiceImpl implements IBookService {
         book.setCategory(category);
 
         Book saved = bookRepository.save(book);
-        DtoBook responseDto = bookMapperView.bookToDto(saved);
-        return GenericResponse.success(responseDto);
+        return bookMapperView.bookToDto(saved);
     }
 
     @Override
-    @CachePut(value = "books", key = "#id", unless = "#result.data == null")
-    public GenericResponse<?> updateBook(Integer id, DtoBookIU dto) {
+    @CachePut(value = "books", key = "#id", unless = "#result == null")
+    public DtoBook updateBook(Integer id, DtoBookIU dto) {
         System.out.println("updateBook called with DTO...");
 
         Optional<Book> optional = bookRepository.findById(id);
         if (optional.isEmpty()) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, id.toString()));
         }
 
         Book book = optional.get();
@@ -115,81 +118,73 @@ public class BookServiceImpl implements IBookService {
         book.setCategory(category);
 
         Book updated = bookRepository.save(book);
-        DtoBook response = bookMapperView.bookToDto(updated);
-        return GenericResponse.success(response);
+        return bookMapperView.bookToDto(updated);
     }
 
     @Override
     @CacheEvict(value = "books", key = "#id")
-    public GenericResponse<?> deleteBook(Integer id) {
+    public String deleteBook(Integer id) {
         System.out.println("deleteBook called...");
 
         Book bookExists = bookRepository.findBookById(id);
         if (bookExists == null) {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        } else {
-            bookRepository.delete(bookExists);
-            return GenericResponse.success("Kitap başarıyla silindi.");
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, id.toString()));
         }
+
+        bookRepository.delete(bookExists);
+        return "Kitap başarıyla silindi.";
     }
 
     @Override
-    public GenericResponse<?> getAllBooks() {
+    public List<DtoBook> getAllBooks() {
         System.out.println("getAllBooks called...");
         List<Book> books = bookRepository.findAllWithRelations();
 
         if (books.isEmpty()) {
-            return GenericResponse.error(Constants.EMPTY_LIST);
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, "kitap listesi"));
         }
 
-        List<DtoBook> dtoBooks = books.stream()
+        return books.stream()
                 .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
                 .map(bookMapperView::bookToDto)
                 .collect(Collectors.toList());
-
-        return GenericResponse.success(dtoBooks);
     }
 
     @Override
-    @Cacheable(value = "books", key = "#id")
-    public GenericResponse<?> findById(Integer id) {
+    @Cacheable(value = "books", key = "#id", unless = "#result == null")
+    public DtoBook findById(Integer id) {
         System.out.println("findById called from database...");
         Book book = bookRepository.findBookById(id);
 
         if (book == null) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, id.toString()));
         }
 
-        DtoBook dto = bookMapperView.bookToDto(book);
-        return GenericResponse.success(dto);
+        return bookMapperView.bookToDto(book);
     }
 
     @Override
-    public GenericResponse<?> searchBooksByName(String keyword) {
+    public List<DtoBook> searchBooksByName(String keyword) {
         System.out.println("searchBooksByName called...");
 
         List<Book> foundBooks = bookRepository.searchByName(keyword);
 
         if (foundBooks.isEmpty()) {
-            return GenericResponse.error("Aradığınız kelimeyle eşleşen kitap bulunamadı.");
+            throw new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, keyword));
         }
 
-        List<DtoBook> dtoList = foundBooks.stream()
+        return foundBooks.stream()
                 .filter(book -> book.getAuthor() != null && book.getPublisher() != null && book.getCategory() != null)
                 .map(bookMapperView::bookToDto)
                 .collect(Collectors.toList());
-
-        return GenericResponse.success(dtoList);
     }
 
     @Override
-    public GenericResponse<?> getSystemStatus() {
+    public DtoSystemStatus getSystemStatus() {
         long toplam = bookRepository.count();
         long musait = bookRepository.countByDurum(Durum.MUSAIT);
         long odunc = bookRepository.countByDurum(Durum.ODUNC_VERILDI);
 
-        DtoSystemStatus dto = new DtoSystemStatus(toplam, musait, odunc);
-        return GenericResponse.success(dto);
+        return new DtoSystemStatus(toplam, musait, odunc);
     }
-
 }

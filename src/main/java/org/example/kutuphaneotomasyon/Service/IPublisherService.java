@@ -1,13 +1,16 @@
 package org.example.kutuphaneotomasyon.Service;
 
+import org.example.kutuphaneotomasyon.Dto.DtoBook;
+import org.example.kutuphaneotomasyon.Dto.DtoPublisher;
 import org.example.kutuphaneotomasyon.Dto.DtoPublisherIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+
+import java.util.List;
 
 public interface IPublisherService {
-        GenericResponse<?> savePublisher(DtoPublisherIU dto);
-        GenericResponse<?> getAllPublishers();
-        GenericResponse<?> getPublisherbyId(Integer id);
-        GenericResponse<?> updatePublisher(Integer id, DtoPublisherIU dto);
-        GenericResponse<?> deletePublisher(Integer id);
-        GenericResponse<?> getBooksByPublisher(Integer publisherId);
+    DtoPublisher savePublisher(DtoPublisherIU dto);
+    List<DtoPublisher> getAllPublishers();
+    DtoPublisher getPublisherbyId(Integer id);
+    DtoPublisher updatePublisher(Integer id, DtoPublisherIU dto);
+    String deletePublisher(Integer id);
+    List<DtoBook> getBooksByPublisher(Integer publisherId);
 }

@@ -1,54 +1,46 @@
-
-
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.DtoPublisherIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Model.RootEntity;
 import org.example.kutuphaneotomasyon.Service.IPublisherService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("rest/api/Publisher")
-public class PublisherController  {
+public class PublisherController extends RestBaseController {
 
     @Autowired
     private IPublisherService publisherService;
 
     @PostMapping("/save")
-
-    public GenericResponse<?> savePublisher(@RequestBody DtoPublisherIU dto) {
-        return publisherService.savePublisher(dto);
+    public RootEntity<?> savePublisher(@RequestBody DtoPublisherIU dto) {
+        return ok(publisherService.savePublisher(dto));
     }
 
     @GetMapping("/listAllPublishers")
-
-    public GenericResponse<?> getAllPublishers() {
-        return publisherService.getAllPublishers();
+    public RootEntity<?> getAllPublishers() {
+        return ok(publisherService.getAllPublishers());
     }
 
     @GetMapping("/list/{id}")
-
-    public GenericResponse<?> getPublisherbyId(@PathVariable(name = "id") Integer id) {
-        return publisherService.getPublisherbyId(id);
+    public RootEntity<?> getPublisherbyId(@PathVariable(name = "id") Integer id) {
+        return ok(publisherService.getPublisherbyId(id));
     }
 
     @PutMapping("/update/{id}")
-
-    public GenericResponse<?> updatePublisher(@PathVariable(name = "id") Integer id,
-                                              @RequestBody DtoPublisherIU dto) {
-        return publisherService.updatePublisher(id, dto);
+    public RootEntity<?> updatePublisher(@PathVariable(name = "id") Integer id,
+                                         @RequestBody DtoPublisherIU dto) {
+        return ok(publisherService.updatePublisher(id, dto));
     }
 
     @DeleteMapping("/delete/{id}")
-
-    public GenericResponse<?> deletePublisher(@PathVariable(name = "id") Integer id) {
-        return publisherService.deletePublisher(id);
+    public RootEntity<?> deletePublisher(@PathVariable(name = "id") Integer id) {
+        return ok(publisherService.deletePublisher(id));
     }
 
     @GetMapping("/{publisherId}/books")
-  
-    public GenericResponse<?> getBooksByPublisher(@PathVariable(name = "publisherId") Integer publisherId) {
-        return publisherService.getBooksByPublisher(publisherId);
+    public RootEntity<?> getBooksByPublisher(@PathVariable(name = "publisherId") Integer publisherId) {
+        return ok(publisherService.getBooksByPublisher(publisherId));
     }
 }

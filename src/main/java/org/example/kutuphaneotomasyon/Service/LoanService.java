@@ -1,13 +1,14 @@
 package org.example.kutuphaneotomasyon.Service;
+
 import org.example.kutuphaneotomasyon.Dto.LoanDto;
 import org.example.kutuphaneotomasyon.Dto.LoanDtoIU;
-import org.example.kutuphaneotomasyon.Entity.Loan;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+
+import java.util.List;
 
 public interface LoanService {
-    GenericResponse<?> saveLoan(LoanDtoIU loanDtoIU);
-    GenericResponse<?> getAllLoans();
-    GenericResponse<?> getLoanById(Integer id);
-    GenericResponse<?> deleteLoanById(Integer id);
-    GenericResponse<?> updateLoan(Integer id, LoanDtoIU updatedLoan);
+    LoanDto saveLoan(LoanDtoIU loanDtoIU);
+    List<LoanDto> getAllLoans();
+    LoanDto getLoanById(Integer id);
+    String deleteLoanById(Integer id);
+    LoanDto updateLoan(Integer id, LoanDtoIU updatedLoan);
 }

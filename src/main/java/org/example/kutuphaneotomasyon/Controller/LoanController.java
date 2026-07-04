@@ -1,7 +1,7 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.LoanDtoIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Model.RootEntity;
 import org.example.kutuphaneotomasyon.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,36 +9,34 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/loans")
-public class LoanController {
+public class LoanController extends RestBaseController {
 
     @Autowired
     private LoanService loanService;
 
     @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping("/save")
-    public GenericResponse<?> saveLoan(@RequestBody LoanDtoIU dtoLoan) {
-
-        System.out.println("💥 LoanController'a geldik!");
-        return loanService.saveLoan(dtoLoan);
+    public RootEntity<?> saveLoan(@RequestBody LoanDtoIU dtoLoan) {
+        return ok(loanService.saveLoan(dtoLoan));
     }
 
     @GetMapping("/getAll")
-    public GenericResponse<?> getAllLoans() {
-        return loanService.getAllLoans();
+    public RootEntity<?> getAllLoans() {
+        return ok(loanService.getAllLoans());
     }
 
     @GetMapping("/getLoan/{id}")
-    public GenericResponse<?> getLoanById(@PathVariable Integer id) {
-        return loanService.getLoanById(id);
+    public RootEntity<?> getLoanById(@PathVariable Integer id) {
+        return ok(loanService.getLoanById(id));
     }
 
     @DeleteMapping("/delete/{id}")
-    public GenericResponse<?> deleteLoanById(@PathVariable Integer id) {
-        return loanService.deleteLoanById(id);
+    public RootEntity<?> deleteLoanById(@PathVariable Integer id) {
+        return ok(loanService.deleteLoanById(id));
     }
 
     @PutMapping("/update/{id}")
-    public GenericResponse<?> updateLoan(@PathVariable Integer id, @RequestBody LoanDtoIU dtoLoan) {
-        return loanService.updateLoan(id, dtoLoan);
+    public RootEntity<?> updateLoan(@PathVariable Integer id, @RequestBody LoanDtoIU dtoLoan) {
+        return ok(loanService.updateLoan(id, dtoLoan));
     }
 }

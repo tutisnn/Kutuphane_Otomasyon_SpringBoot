@@ -1,15 +1,16 @@
 package org.example.kutuphaneotomasyon.Service;
 
-
+import org.example.kutuphaneotomasyon.Dto.DtoBook;
+import org.example.kutuphaneotomasyon.Dto.DtoCategory;
 import org.example.kutuphaneotomasyon.Dto.DtoCategoryIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+
+import java.util.List;
 
 public interface ICategoryService {
-
-    GenericResponse<?> saveCategory(DtoCategoryIU dto);
-    GenericResponse<?> getAllCategories();
-    GenericResponse<?> getCategoryById(Integer id);
-    GenericResponse<?> updateCategory(Integer id, DtoCategoryIU dto);
-    GenericResponse<?> deleteCategory(Integer id);
-    GenericResponse<?> getBooksByCategoryId(Integer categoryId);
+    DtoCategory saveCategory(DtoCategoryIU dto);
+    List<DtoCategory> getAllCategories();
+    DtoCategory getCategoryById(Integer id);
+    DtoCategory updateCategory(Integer id, DtoCategoryIU dto);
+    String deleteCategory(Integer id);
+    List<DtoBook> getBooksByCategoryId(Integer categoryId);
 }

@@ -1,53 +1,46 @@
-
-
 package org.example.kutuphaneotomasyon.Controller;
+
 import org.example.kutuphaneotomasyon.Dto.DtoCategoryIU;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
+import org.example.kutuphaneotomasyon.Model.RootEntity;
 import org.example.kutuphaneotomasyon.Service.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("rest/api/Category")
-public class CategoryController {
+public class CategoryController extends RestBaseController {
 
     @Autowired
     private ICategoryService categoryService;
 
     @PostMapping("/save")
-
-    public GenericResponse<?> saveCategory(@RequestBody DtoCategoryIU dto) {
-        return categoryService.saveCategory(dto);
+    public RootEntity<?> saveCategory(@RequestBody DtoCategoryIU dto) {
+        return ok(categoryService.saveCategory(dto));
     }
 
     @GetMapping("/listAllCategories")
-
-    public GenericResponse<?> getAllCategories() {
-        return categoryService.getAllCategories();
+    public RootEntity<?> getAllCategories() {
+        return ok(categoryService.getAllCategories());
     }
 
     @GetMapping("/list/{id}")
-
-    public GenericResponse<?> getCategoryById(@PathVariable(name = "id") Integer id) {
-        return categoryService.getCategoryById(id);
+    public RootEntity<?> getCategoryById(@PathVariable(name = "id") Integer id) {
+        return ok(categoryService.getCategoryById(id));
     }
 
     @PutMapping("/update/{id}")
-
-    public GenericResponse<?> updateCategory(@PathVariable(name = "id") Integer id,
-                                             @RequestBody DtoCategoryIU dto) {
-        return categoryService.updateCategory(id, dto);
+    public RootEntity<?> updateCategory(@PathVariable(name = "id") Integer id,
+                                        @RequestBody DtoCategoryIU dto) {
+        return ok(categoryService.updateCategory(id, dto));
     }
 
     @DeleteMapping("/delete/{id}")
-
-    public GenericResponse<?> deleteCategory(@PathVariable(name = "id") Integer id) {
-        return categoryService.deleteCategory(id);
+    public RootEntity<?> deleteCategory(@PathVariable(name = "id") Integer id) {
+        return ok(categoryService.deleteCategory(id));
     }
 
     @GetMapping("/{categoryId}/books")
-
-    public GenericResponse<?> getBooksByCategoryId(@PathVariable(name = "categoryId") Integer categoryId) {
-        return categoryService.getBooksByCategoryId(categoryId);
+    public RootEntity<?> getBooksByCategoryId(@PathVariable(name = "categoryId") Integer categoryId) {
+        return ok(categoryService.getBooksByCategoryId(categoryId));
     }
 }

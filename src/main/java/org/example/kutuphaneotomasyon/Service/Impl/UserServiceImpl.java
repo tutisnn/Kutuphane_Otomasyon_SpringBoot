@@ -7,9 +7,10 @@ import org.example.kutuphaneotomasyon.Dto.UserDtoIU;
 import org.example.kutuphaneotomasyon.Entity.User;
 import org.example.kutuphaneotomasyon.Mapper.UserMapper;
 import org.example.kutuphaneotomasyon.Repository.UserRepository;
-import org.example.kutuphaneotomasyon.ResponseMessage.Constants;
-import org.example.kutuphaneotomasyon.ResponseMessage.GenericResponse;
 import org.example.kutuphaneotomasyon.Service.UserService;
+import org.example.kutuphaneotomasyon.exception.BaseException;
+import org.example.kutuphaneotomasyon.exception.ErrorMessage;
+import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -33,24 +34,22 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GenericResponse<?> deleteUser(Integer id) {
-        System.out.println("delete user called");
+    public UserDto deleteUser(Integer id) {
         User userExists = userRepository.findUserById(id);
         if (userExists == null) {
-            return GenericResponse.error(Constants.EMPTY_ID);
-        } else {
-            userExists.setDeleted(true);
-            userRepository.save(userExists);
-            return GenericResponse.success(userMapper.userToDto(userExists));
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString()));
         }
+
+        userExists.setDeleted(true);
+        userRepository.save(userExists);
+        return userMapper.userToDto(userExists);
     }
 
     @Override
-    public GenericResponse<?> updateUser(Integer id, UserDtoIU dto) {
-        System.out.println("update user called...");
+    public UserDto updateUser(Integer id, UserDtoIU dto) {
         User user = userRepository.findUserById(id);
         if (user == null) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString()));
         }
 
         user.setUsername(dto.getUsername());
@@ -58,23 +57,23 @@ public class UserServiceImpl implements UserService {
         user.setPassword(passwordEncoder.encode(dto.getPassword()));
 
         User updated = userRepository.save(user);
-        return GenericResponse.success(userMapper.userToDto(updated));
+        return userMapper.userToDto(updated);
     }
 
     @Override
-    public GenericResponse<?> findById(Integer id) {
-        System.out.println("getUserById called");
+    public UserDto findById(Integer id) {
         User user = userRepository.findUserById(id);
         if (user == null) {
-            return GenericResponse.error(Constants.EMPTY_ID);
+            throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString()));
         }
-        return GenericResponse.success(userMapper.userToDto(user));
+        return userMapper.userToDto(user);
     }
 
     @Override
-    public GenericResponse<?> searchByUserName(String keyword) {
-        System.out.println("searchByUsername called");
-        List<User> foundUsers = userRepository.searchByUsername(keyword);
-        return GenericResponse.success(foundUsers.stream().map(userMapper::userToDto).toList());
+    public List<UserDto> searchByUserName(String keyword) {
+        return userRepository.searchByUsername(keyword)
+                .stream()
+                .map(userMapper::userToDto)
+                .toList();
     }
 }

@@ -5,16 +5,18 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Component;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-@Service
+@Component
 public class JwtService {
 
     @Value("${security.jwt.secret-key}")
@@ -23,65 +25,79 @@ public class JwtService {
     @Value("${security.jwt.expiration-time}")
     private long jwtExpiration;
 
-    public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
-    }
-
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
-        final Claims claims = extractAllClaims(token);
-        return claimsResolver.apply(claims);
-    }
-
     public String generateToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails);
     }
 
     public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-        return buildToken(extraClaims, userDetails, jwtExpiration);
+        Map<String, Object> claimsMap = new HashMap<>(extraClaims);
+        List<String> authorities = userDetails.getAuthorities()
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .toList();
+        claimsMap.put("authorities", authorities);
+
+        return Jwts.builder()
+                .claims(claimsMap)
+                .subject(userDetails.getUsername())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + jwtExpiration))
+                .signWith(getKey())
+                .compact();
     }
 
     public long getExpirationTime() {
         return jwtExpiration;
     }
 
-    private String buildToken(
-            Map<String, Object> extraClaims,
-            UserDetails userDetails,
-            long expiration
-    ) {
-        return Jwts
-                .builder()
-                .setClaims(extraClaims)
-                .setSubject(userDetails.getUsername())
-                .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis() + expiration))
-                .signWith(getSignInKey())
-                .compact();
-    }
-
-    public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
-    }
-
-    private Claims extractAllClaims(String token) {
-        return Jwts
-                .parser()
-                .verifyWith(getSignInKey())
+    public Claims getClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(getKey())
                 .build()
                 .parseSignedClaims(token)
                 .getPayload();
     }
 
-    private SecretKey getSignInKey() {
+    public Object getClaimsByKey(String token, String key) {
+        Claims claims = getClaims(token);
+        return claims.get(key);
+    }
+
+    public <T> T exportToken(String token, Function<Claims, T> claimsFunction) {
+        Claims claims = getClaims(token);
+        return claimsFunction.apply(claims);
+    }
+
+    public String getUsernameByToken(String token) {
+        return exportToken(token, Claims::getSubject);
+    }
+
+    public String extractUsername(String token) {
+        return getUsernameByToken(token);
+    }
+
+    public List<String> getAuthoritiesByToken(String token) {
+        Object authorities = getClaimsByKey(token, "authorities");
+        if (authorities instanceof List<?> list) {
+            return list.stream()
+                    .filter(String.class::isInstance)
+                    .map(String.class::cast)
+                    .toList();
+        }
+        return List.of();
+    }
+
+    public boolean isTokenExpired(String token) {
+        Date expiredDate = exportToken(token, Claims::getExpiration);
+        return new Date().before(expiredDate);
+    }
+
+    public boolean isTokenValid(String token, UserDetails userDetails) {
+        String username = getUsernameByToken(token);
+        return username.equals(userDetails.getUsername()) && isTokenExpired(token);
+    }
+
+    private SecretKey getKey() {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         return Keys.hmacShaKeyFor(keyBytes);
     }

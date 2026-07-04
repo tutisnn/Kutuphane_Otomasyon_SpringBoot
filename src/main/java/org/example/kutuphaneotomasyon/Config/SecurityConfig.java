@@ -1,56 +1,62 @@
 package org.example.kutuphaneotomasyon.Config;
 
-import org.springframework.beans.factory.annotation.Value;
+import org.example.kutuphaneotomasyon.jwt.AuthEntryPoint;
+import org.example.kutuphaneotomasyon.jwt.JwtAuthenticationFilter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
-import org.springframework.security.config.Customizer;
+import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
-import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
-import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-
-import java.util.Arrays;
-import java.util.List;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
+@EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
-    @Value("#{'${app.cors.allowed-origin-patterns:http://localhost:*,http://127.0.0.1:*,http://[::1]:*}'.split(',')}")
-    private List<String> allowedOriginPatterns;
+    public static final String AUTHENTICATE = "/authenticate";
+    public static final String REGISTER = "/register";
+    public static final String REFRESH_TOKEN = "/refreshToken";
 
-    @Bean
-    public CorsConfigurationSource corsConfigurationSource() {
-        CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowCredentials(true);
-        configuration.setAllowedOriginPatterns(
-                allowedOriginPatterns.stream()
-                        .map(String::trim)
-                        .filter(pattern -> !pattern.isBlank())
-                        .toList()
-        );
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        configuration.setAllowedHeaders(List.of("*"));
-        configuration.setExposedHeaders(Arrays.asList("Set-Cookie", "Authorization"));
+    public static final String[] SWAGGER_PATHS = {
+            "/swagger-ui/**",
+            "/v3/api-docs/**",
+            "/swagger-ui.html"
+    };
 
-        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-        source.registerCorsConfiguration("/**", configuration);
-        return source;
-    }
+    @Autowired
+    private AuthenticationProvider authenticationProvider;
+
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
+
+    @Autowired
+    private AuthEntryPoint authEntryPoint;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
+        http.csrf(csrf -> csrf.disable())
+                .authorizeHttpRequests(requests ->
+                        requests.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                                .requestMatchers(AUTHENTICATE, REGISTER, REFRESH_TOKEN).permitAll()
+                                .requestMatchers(SWAGGER_PATHS).permitAll()
+                                .requestMatchers("/users/**").hasRole("ADMIN")
+                                .requestMatchers("/rest/api/Book/system/status").hasRole("ADMIN")
+                                .requestMatchers(HttpMethod.GET, "/rest/api/Book/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/rest/api/Author/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/rest/api/Category/**").permitAll()
+                                .requestMatchers(HttpMethod.GET, "/rest/api/Publisher/**").permitAll()
+                                .anyRequest()
+                                .authenticated())
+                .exceptionHandling(exception -> exception.authenticationEntryPoint(authEntryPoint))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
-                        .anyRequest().permitAll()
-                );
+                .authenticationProvider(authenticationProvider)
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

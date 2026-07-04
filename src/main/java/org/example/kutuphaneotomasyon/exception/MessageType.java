@@ -11,6 +11,8 @@ public enum MessageType {
     FOUND_ID("1005", "Book found with the same id"),
     EMPTY_LIST("1006", "No registration found"),
     BOOK_NOT_AVAILABLE("1007", "Kitap şu an uygun değil"),
+    USER_ALREADY_EXISTS("1008", "Kullanici zaten mevcut"),
+    AUTHENTICATION_FAILED("1009", "Kullanıcı adı veya şifre hatalı"),
     GENERAL_EXCEPTION("9999", "genel bir hata oluştu");
 
     private final String code;

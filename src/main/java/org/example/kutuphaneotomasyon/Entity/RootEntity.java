@@ -1,4 +1,4 @@
-package org.example.kutuphaneotomasyon.Model;
+package org.example.kutuphaneotomasyon.Entity;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

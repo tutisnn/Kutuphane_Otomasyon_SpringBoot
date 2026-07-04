@@ -15,6 +15,7 @@ import org.example.kutuphaneotomasyon.exception.ErrorMessage;
 import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ public class CategoryServiceImpl implements ICategoryService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoCategory saveCategory(DtoCategoryIU dto) {
         Category category = CategoryMapper.dtoToCategory(dto);
         Category saved = categoryRepository.save(category);
@@ -57,6 +59,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoCategory updateCategory(Integer id, DtoCategoryIU dto) {
         Category dbCategory = categoryRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
@@ -66,6 +69,7 @@ public class CategoryServiceImpl implements ICategoryService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public String deleteCategory(Integer id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));

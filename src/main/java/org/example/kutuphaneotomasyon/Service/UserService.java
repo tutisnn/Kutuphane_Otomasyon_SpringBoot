@@ -10,5 +10,6 @@ public interface UserService {
     UserDto deleteUser(Integer id);
     UserDto updateUser(Integer id, UserDtoIU dto);
     UserDto findById(Integer id);
+    UserDto findByUsername(String username);
     List<UserDto> searchByUserName(String keyword);
 }

@@ -15,6 +15,7 @@ import org.example.kutuphaneotomasyon.exception.ErrorMessage;
 import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -34,6 +35,7 @@ public class AuthorServiceImpl implements IAuthorService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public DtoAuthor saveAuthor(DtoAuthorIU dto) {
         Author author = authorMapper.dtoToAuthor(dto);
         Author saved = authorRepository.save(author);
@@ -60,6 +62,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public DtoAuthor updateAuthor(Integer id, DtoAuthorIU dto) {
         Author dbAuthor = authorRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
@@ -69,6 +72,7 @@ public class AuthorServiceImpl implements IAuthorService {
     }
 
     @Override
+    @PreAuthorize("hasRole('LIBRARIAN') or hasRole('ADMIN')")
     public String deleteAuthor(Integer id) {
         Author author = authorRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));

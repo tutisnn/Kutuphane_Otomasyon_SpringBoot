@@ -1,6 +1,6 @@
 package org.example.kutuphaneotomasyon.Controller;
 
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 
 public class RestBaseController {
 

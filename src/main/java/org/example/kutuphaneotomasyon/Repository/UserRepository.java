@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
-    Optional<User> findByVerificationCode(String verificationCode);
+    Optional<User> findByUsername(String username);
     User findUserById(Integer id);
     @Query(value="SELECT * FROM user WHERE username ILIKE %:keyword%",nativeQuery = true)
     List<User> searchByUsername(String keyword);

@@ -16,6 +16,7 @@ import org.example.kutuphaneotomasyon.exception.BaseException;
 import org.example.kutuphaneotomasyon.exception.ErrorMessage;
 import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -37,6 +38,7 @@ public class LoanServiceImpl implements LoanService {
     private LoanMapper loanMapper;
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public LoanDto saveLoan(LoanDtoIU loanDtoIU) {
         User user = userRepository.findById(loanDtoIU.getUserId())
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_USER, loanDtoIU.getUserId().toString())));
@@ -56,6 +58,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public List<LoanDto> getAllLoans() {
         return loanRepository.findAll()
                 .stream()
@@ -64,6 +67,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public LoanDto getLoanById(Integer id) {
         Loan loan = loanRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
@@ -71,6 +75,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public String deleteLoanById(Integer id) {
         if (!loanRepository.existsById(id)) {
             throw new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString()));
@@ -80,6 +85,7 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public LoanDto updateLoan(Integer id, LoanDtoIU updatedLoan) {
         Loan loan = loanRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));

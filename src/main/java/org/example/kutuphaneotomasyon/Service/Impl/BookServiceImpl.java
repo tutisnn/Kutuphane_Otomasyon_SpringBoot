@@ -23,6 +23,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.Optional;
@@ -44,6 +45,7 @@ public class BookServiceImpl implements IBookService {
     private final BookMapperView bookMapperView = new BookMapperView();
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoBook saveBook(DtoBookIU dto) {
         System.out.println("saveBook called...");
 
@@ -80,6 +82,7 @@ public class BookServiceImpl implements IBookService {
 
     @Override
     @CachePut(value = "books", key = "#id", unless = "#result == null")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoBook updateBook(Integer id, DtoBookIU dto) {
         System.out.println("updateBook called with DTO...");
 
@@ -123,6 +126,7 @@ public class BookServiceImpl implements IBookService {
 
     @Override
     @CacheEvict(value = "books", key = "#id")
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public String deleteBook(Integer id) {
         System.out.println("deleteBook called...");
 

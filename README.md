@@ -123,20 +123,11 @@ docker exec -it redis-cache redis-cli
 
 ## Kimlik Dogrulama Endpointleri
 
-Base path:
-
-```text
-/auth
-```
-
 | Method | Endpoint | Aciklama |
 | --- | --- | --- |
-| POST | `/auth/signup` | Yeni kullanici kaydi |
-| POST | `/auth/login` | Giris yapma ve JWT alma |
-| POST | `/auth/verify` | Hesap dogrulama |
-| POST | `/auth/resend?email=...` | Dogrulama kodunu tekrar gonderme |
-| POST | `/auth/forgot-password` | Sifre sifirlama kodu gonderme |
-| POST | `/auth/reset-password` | Sifre sifirlama |
+| POST | `/register` | Yeni kullanici kaydi |
+| POST | `/authenticate` | Giris yapma, access token ve refresh token alma |
+| POST | `/refreshToken` | Refresh token ile yeni access token alma |
 
 ## Kitap Endpointleri
 

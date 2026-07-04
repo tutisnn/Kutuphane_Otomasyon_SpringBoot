@@ -1,7 +1,7 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.LoanDtoIU;
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 import org.example.kutuphaneotomasyon.Service.LoanService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,7 +14,6 @@ public class LoanController extends RestBaseController {
     @Autowired
     private LoanService loanService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping("/save")
     public RootEntity<?> saveLoan(@RequestBody LoanDtoIU dtoLoan) {
         return ok(loanService.saveLoan(dtoLoan));

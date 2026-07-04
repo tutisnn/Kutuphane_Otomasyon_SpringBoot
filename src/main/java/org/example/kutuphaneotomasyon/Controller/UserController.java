@@ -2,8 +2,7 @@ package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.UserDto;
 import org.example.kutuphaneotomasyon.Dto.UserDtoIU;
-import org.example.kutuphaneotomasyon.Entity.User;
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 import org.example.kutuphaneotomasyon.Service.UserService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -25,15 +24,8 @@ public class UserController extends RestBaseController {
     @GetMapping("/me")
     public ResponseEntity<UserDto> getAuthenticatedUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        User currentUser = (User) authentication.getPrincipal();
-        UserDto dto = new UserDto(
-                currentUser.getId(),
-                currentUser.getUsername(),
-                currentUser.getEmail(),
-                currentUser.getRole(),
-                currentUser.isEnabled()
-        );
-        return ResponseEntity.ok(dto);
+        String username = authentication.getPrincipal().toString();
+        return ResponseEntity.ok(userService.findByUsername(username));
     }
 
     @GetMapping("/")

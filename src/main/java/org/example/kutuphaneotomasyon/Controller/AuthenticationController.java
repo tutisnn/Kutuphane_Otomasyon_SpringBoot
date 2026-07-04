@@ -1,69 +1,38 @@
 package org.example.kutuphaneotomasyon.Controller;
 
-
-
-import org.example.kutuphaneotomasyon.Dto.*;
-import org.example.kutuphaneotomasyon.Entity.User;
-import org.example.kutuphaneotomasyon.ResponseMessage.LoginResponse;
+import jakarta.validation.Valid;
+import org.example.kutuphaneotomasyon.Dto.AuthRequest;
+import org.example.kutuphaneotomasyon.Dto.AuthResponse;
+import org.example.kutuphaneotomasyon.Dto.RefreshTokenRequest;
+import org.example.kutuphaneotomasyon.Dto.UserDto;
 import org.example.kutuphaneotomasyon.Service.AuthenticationService;
-import org.example.kutuphaneotomasyon.jwt.JwtService;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.example.kutuphaneotomasyon.Service.IRefreshTokenService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
 
-@RequestMapping("/auth")
 @RestController
 public class AuthenticationController {
-    private final JwtService jwtService;
 
-    private final AuthenticationService authenticationService;
+    @Autowired
+    private AuthenticationService authenticationService;
 
-    public AuthenticationController(JwtService jwtService, AuthenticationService authenticationService) {
-        this.jwtService = jwtService;
-        this.authenticationService = authenticationService;
+    @Autowired
+    private IRefreshTokenService refreshTokenService;
+
+    @PostMapping("/register")
+    public UserDto register(@Valid @RequestBody AuthRequest authRequest) {
+        return authenticationService.register(authRequest);
     }
 
-    @PostMapping("/signup")
-    public ResponseEntity<User> register(@RequestBody RegisterUserDto registerUserDto) {
-        User registeredUser = authenticationService.signup(registerUserDto);
-        return ResponseEntity.ok(registeredUser);
+    @PostMapping("/authenticate")
+    public AuthResponse authenticate(@Valid @RequestBody AuthRequest authRequest) {
+        return authenticationService.authenticate(authRequest);
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<LoginResponse> authenticate(@RequestBody LoginUserDto loginUserDto) {
-        LoginResponse loginResponse = authenticationService.authenticate(loginUserDto);
-        return ResponseEntity.ok(loginResponse);
-    }
-
-
-    @PostMapping("/verify")
-    public ResponseEntity<?> verifyUser(@RequestBody VerifyUserDto verifyUserDto) {
-        try {
-            authenticationService.verifyUser(verifyUserDto);
-            return ResponseEntity.ok("Account verified successfully");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/resend")
-    public ResponseEntity<?> resendVerificationCode(@RequestParam String email) {
-        try {
-            authenticationService.resendVerificationCode(email);
-            return ResponseEntity.ok("Verification code sent");
-        } catch (RuntimeException e) {
-            return ResponseEntity.badRequest().body(e.getMessage());
-        }
-    }
-
-    @PostMapping("/forgot-password")
-    public ResponseEntity<?> sendResetCode(@RequestBody ForgotPasswordDto dto) {
-        authenticationService.sendForgotPasswordCode(dto.getEmail());
-        return ResponseEntity.ok("Verification code sent");
-    }
-
-    @PostMapping("/reset-password")
-    public ResponseEntity<?> resetPassword(@RequestBody ResetPasswordDto dto) {
-        authenticationService.resetPassword(dto);
-        return ResponseEntity.ok("Password updated successfully");
+    @PostMapping("/refreshToken")
+    public AuthResponse refreshToken(@RequestBody RefreshTokenRequest request) {
+        return refreshTokenService.refreshToken(request);
     }
 }

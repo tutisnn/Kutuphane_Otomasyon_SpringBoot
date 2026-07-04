@@ -14,6 +14,7 @@ import org.example.kutuphaneotomasyon.exception.BaseException;
 import org.example.kutuphaneotomasyon.exception.ErrorMessage;
 import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.stereotype.Service;
+import org.springframework.security.access.prepost.PreAuthorize;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +32,7 @@ public class PublisherServiceImpl implements IPublisherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoPublisher savePublisher(DtoPublisherIU dto) {
         Publisher publisher = PublisherMapper.dtoToPublisher(dto);
         Publisher saved = publisherRepository.save(publisher);
@@ -57,6 +59,7 @@ public class PublisherServiceImpl implements IPublisherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public DtoPublisher updatePublisher(Integer id, DtoPublisherIU dto) {
         Publisher publisher = publisherRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));
@@ -66,6 +69,7 @@ public class PublisherServiceImpl implements IPublisherService {
     }
 
     @Override
+    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     public String deletePublisher(Integer id) {
         Publisher publisher = publisherRepository.findById(id)
                 .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.EMPTY_ID, id.toString())));

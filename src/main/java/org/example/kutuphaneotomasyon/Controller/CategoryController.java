@@ -1,7 +1,7 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.DtoCategoryIU;
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 import org.example.kutuphaneotomasyon.Service.ICategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;

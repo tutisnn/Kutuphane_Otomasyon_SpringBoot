@@ -2,7 +2,7 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.DtoBookIU;
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 
 import org.example.kutuphaneotomasyon.Service.IBookService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,13 +15,11 @@ public class BookController extends RestBaseController {
     @Autowired
     private IBookService bookService;
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PostMapping("/save")
     public RootEntity<?> saveBook(@RequestBody DtoBookIU dto) {
         return ok(bookService.saveBook(dto));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @PutMapping("/update/{id}")
     public RootEntity<?> updateBook(
             @PathVariable Integer id,
@@ -30,7 +28,6 @@ public class BookController extends RestBaseController {
         return ok(bookService.updateBook(id, dto));
     }
 
-    @PreAuthorize("hasAnyRole('ADMIN', 'LIBRARIAN')")
     @DeleteMapping("/delete/{id}")
     public RootEntity<?> deleteBook(@PathVariable(name="id")Integer id) {
         return ok(bookService.deleteBook(id));

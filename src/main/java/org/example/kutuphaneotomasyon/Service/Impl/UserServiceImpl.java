@@ -12,6 +12,7 @@ import org.example.kutuphaneotomasyon.exception.BaseException;
 import org.example.kutuphaneotomasyon.exception.ErrorMessage;
 import org.example.kutuphaneotomasyon.exception.MessageType;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -26,6 +27,7 @@ public class UserServiceImpl implements UserService {
     private final PasswordEncoder passwordEncoder;
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserDto> allUsers() {
         return userRepository.findAll()
                 .stream()
@@ -34,6 +36,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UserDto deleteUser(Integer id) {
         User userExists = userRepository.findUserById(id);
         if (userExists == null) {
@@ -46,6 +49,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UserDto updateUser(Integer id, UserDtoIU dto) {
         User user = userRepository.findUserById(id);
         if (user == null) {
@@ -61,6 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public UserDto findById(Integer id) {
         User user = userRepository.findUserById(id);
         if (user == null) {
@@ -70,6 +75,14 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    public UserDto findByUsername(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new BaseException(new ErrorMessage(MessageType.NO_RECORD_EXISTS, username)));
+        return userMapper.userToDto(user);
+    }
+
+    @Override
+    @PreAuthorize("hasRole('ADMIN')")
     public List<UserDto> searchByUserName(String keyword) {
         return userRepository.searchByUsername(keyword)
                 .stream()

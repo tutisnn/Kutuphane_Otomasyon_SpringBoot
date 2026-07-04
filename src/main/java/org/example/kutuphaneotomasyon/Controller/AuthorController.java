@@ -1,8 +1,9 @@
 package org.example.kutuphaneotomasyon.Controller;
 
 import org.example.kutuphaneotomasyon.Dto.DtoAuthorIU;
-import org.example.kutuphaneotomasyon.Model.RootEntity;
+import org.example.kutuphaneotomasyon.Entity.RootEntity;
 import org.example.kutuphaneotomasyon.Service.IAuthorService;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
